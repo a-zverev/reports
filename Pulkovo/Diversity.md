@@ -108,7 +108,7 @@ plot_alpha <- function(ps) {
   
   alpha_div <- function(ps){
     ps <- prune_taxa(taxa_sums(ps) > 0, ps)
-    obs_sim <- estimate_richness(ps, measures = c("Observed", "Simpson"))
+    obs_sim <- estimate_richness(ps, measures = c("Observed", "Simpson", "Shannon"))
     Salinity <- ps@sam_data$salinity
     alpha <- cbind(obs_sim, Salinity)
     return(alpha)
@@ -120,6 +120,7 @@ plot_alpha <- function(ps) {
   
   obs <- wilcox.test(values ~ Salinity, data = alpha %>% filter(index == 'Observed'))
   simps <- wilcox.test(values ~ Salinity, data = alpha %>% filter(index == 'Simpson'))
+  shann <- wilcox.test(values ~ Salinity, data = alpha %>% filter(index == 'Shannon'))
   
   p1 <- ggplot(alpha %>% filter(index == 'Observed'), aes(x=Salinity, y=values)) + 
     geom_boxplot() +
@@ -133,7 +134,13 @@ plot_alpha <- function(ps) {
     theme_minimal() +
     labs(title = "Simpson", caption = paste("Wilcox.test p-value:", round(simps$p.value, 2)))
   
-  ggarrange(p1, p2)
+  p3 <- ggplot(alpha %>% filter(index == 'Shannon'), aes(x=Salinity, y=values)) + 
+    geom_boxplot() +
+    geom_point(alpha=0.4) +
+    theme_minimal() +
+    labs(title = "Shannon", caption = paste("Wilcox.test p-value:", round(shann$p.value, 2)))
+  
+  ggarrange(p1, p2, p3, ncol=3)
 }
 
 plot_alpha(ps.all)
